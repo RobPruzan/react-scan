@@ -89,7 +89,15 @@ export const toggleMultipleClasses = (
 };
 
 interface WrapperBadge {
-  type: 'memo' | 'forwardRef' | 'lazy' | 'suspense' | 'profiler' | 'strict';
+  type:
+    | 'memo'
+    | 'forwardRef'
+    | 'lazy'
+    | 'suspense'
+    | 'profiler'
+    | 'strict'
+    | 'client'
+    | 'server';
   title: string;
   compiler?: boolean;
 }
@@ -154,6 +162,18 @@ export const getExtendedDisplayName = (fiber: Fiber): ExtendedDisplayName => {
     wrapperTypes.push({
       type: 'profiler',
       title: 'Component that measures rendering performance',
+    });
+  }
+
+  const componentType = (type as { __reactScanComponentType?: string })
+    .__reactScanComponentType;
+  if (componentType === 'client' || componentType === 'server') {
+    wrapperTypes.push({
+      type: componentType,
+      title:
+        componentType === 'client'
+          ? 'Client component that runs on the browser'
+          : 'Server component rendered on the server',
     });
   }
 
