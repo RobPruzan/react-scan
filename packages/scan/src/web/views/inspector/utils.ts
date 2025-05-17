@@ -464,52 +464,42 @@ export const findComponentDOMNode = (
 };
 
 export interface InspectableElement {
-  element: HTMLElement;
+  element?: HTMLElement;
   depth: number;
   name: string;
   fiber: Fiber;
 }
 
-export const getInspectableElements = (
-  root: HTMLElement = document.body,
-): Array<InspectableElement> => {
+export const getInspectableElements = (): Array<InspectableElement> => {
   const result: Array<InspectableElement> = [];
+  const instrumentation = ReactScanInternals.instrumentation;
 
-  const findInspectableFiber = (
-    element: HTMLElement | null,
-  ): HTMLElement | null => {
-    if (!element) return null;
+  if (!instrumentation) return result;
 
-    const { parentCompositeFiber } = getCompositeComponentFromElement(element);
-    if (!parentCompositeFiber) return null;
-
-    const componentRoot = findComponentDOMNode(parentCompositeFiber);
-    return componentRoot === element ? element : null;
-  };
-
-  const traverse = (element: HTMLElement, depth = 0) => {
-    const inspectable = findInspectableFiber(element);
-    if (inspectable) {
-      const { parentCompositeFiber } =
-        getCompositeComponentFromElement(inspectable);
-
-      if (!parentCompositeFiber) return;
-
-      result.push({
-        element: inspectable,
-        depth,
-        name: getDisplayName(parentCompositeFiber.type) ?? 'Unknown',
-        fiber: parentCompositeFiber,
-      });
-    }
-
-    // Traverse children first (depth-first)
-    for (const child of Array.from(element.children)) {
-      traverse(child as HTMLElement, inspectable ? depth + 1 : depth);
+  const traverse = (fiber: Fiber | null, depth: number) => {
+    let current: Fiber | null = fiber;
+    while (current) {
+      if (isCompositeFiber(current)) {
+        result.push({
+          element: findComponentDOMNode(current) ?? undefined,
+          depth,
+          name: getDisplayName(current.type) ?? 'Unknown',
+          fiber: current,
+        });
+        if (current.child) {
+          traverse(current.child, depth + 1);
+        }
+      } else if (current.child) {
+        traverse(current.child, depth);
+      }
+      current = current.sibling;
     }
   };
 
-  traverse(root);
+  instrumentation.fiberRoots.forEach((root) => {
+    traverse(root.current.child, 0);
+  });
+
   return result;
 };
 
