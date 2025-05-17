@@ -58,6 +58,7 @@ yarn add react-scan
 - [Astro](https://github.com/aidenybai/react-scan/blob/main/docs/installation/astro.md)
 - [TanStack Start](https://github.com/aidenybai/react-scan/blob/main/docs/installation/tanstack-start.md)
 - [Rsbuild](https://github.com/aidenybai/react-scan/blob/main/docs/installation/rsbuild.md)
+- [Child Windows](https://github.com/aidenybai/react-scan/blob/main/docs/guides/child-windows.md)
 
 ### CLI
 
