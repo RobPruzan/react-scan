@@ -197,7 +197,7 @@ export const getPropsChanges = (fiber: Fiber) => {
     ...Object.keys(prevProps),
     ...Object.keys(nextProps),
   ]);
-  for (const propName in allKeys) {
+  for (const propName of allKeys) {
     // const prevValue = prevProps?.[propName];
     const nextValue = nextProps?.[propName];
 
