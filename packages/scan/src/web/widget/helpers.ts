@@ -102,7 +102,7 @@ export const calculatePosition = (
   // Check if widget is minimized
   const isMinimized = width === MIN_SIZE.width;
 
-  // Only bound dimensions if minimized
+  // Only bound dimensions if the widget is not minimized
   const effectiveWidth = isMinimized
     ? width
     : Math.min(width, windowWidth - SAFE_AREA * 2);
