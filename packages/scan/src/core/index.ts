@@ -161,6 +161,13 @@ export interface Options {
   showFPS?: boolean;
 
   /**
+   * Preferred frames per second target
+   *
+   * @default 60
+   */
+  preferredFPS?: number;
+
+  /**
    * Should the number of slowdown notifications be shown in the toolbar
    *
    *  @default true
@@ -320,6 +327,7 @@ export const ReactScanInternals: Internals = {
     animationSpeed: 'fast',
     dangerouslyForceRunInProduction: false,
     showFPS: true,
+    preferredFPS: 60,
     showNotificationCount: true,
     allowInIframe: false,
     // smoothlyAnimateOutlines: true,
@@ -373,6 +381,13 @@ const validateOptions = (options: Partial<Options>): Partial<Options> => {
           errors.push(`- ${key} must be a boolean. Got "${value}"`);
         } else {
           validOptions[key] = value;
+        }
+        break;
+      case 'preferredFPS':
+        if (typeof value !== 'number' || value <= 0) {
+          errors.push(`- ${key} must be a positive number. Got "${value}"`);
+        } else {
+          validOptions.preferredFPS = value;
         }
         break;
       // case 'renderCountThreshold':

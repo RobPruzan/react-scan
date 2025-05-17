@@ -1,6 +1,6 @@
 import { ReactNode } from 'preact/compat';
 import { useContext, useEffect, useState } from 'preact/hooks';
-import { getIsProduction } from '~core/index';
+import { getIsProduction, getOptions } from '~core/index';
 import { iife } from '~core/notifications/performance-utils';
 import { cn } from '~web/utils/helpers';
 import {
@@ -508,8 +508,13 @@ const Explanation = ({ input }: { input: OverviewInput }) => {
           ])}
         >
           <p>
-            This is the time it took to draw the entire frame that was presented
-            to the user. To be at 60FPS, this number needs to be {'<=16ms'}
+            {(() => {
+              const preferred = getOptions().value.preferredFPS;
+              const budget = Math.round(1000 / preferred);
+              return (
+                <>This is the time it took to draw the entire frame that was presented to the user. To be at {preferred}FPS, this number needs to be {'<=' + budget + 'ms'}</>
+              );
+            })()}
           </p>
 
           <p>

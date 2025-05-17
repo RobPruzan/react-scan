@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'preact/compat';
 import { not_globally_unique_generateId } from '~core/monitor/utils';
+import { getOptions } from '../index';
 import { MAX_INTERACTION_BATCH, interactionStore } from './interaction-store';
 import {
   FiberRenders,
@@ -316,7 +317,11 @@ export const startDirtyTaskTracking = () => {
   };
 };
 
-export const HIGH_SEVERITY_FPS_DROP_TIME = 150;
+export const getHighSeverityFpsDropTime = () =>
+  (1000 / getOptions().value.preferredFPS) * 9;
+
+export const getLowSeverityFpsDropTime = () =>
+  (1000 / getOptions().value.preferredFPS) * 3;
 
 let framesDrawnInTheLastSecond: Array<number> = [];
 
@@ -354,7 +359,7 @@ export function startLongPipelineTracking() {
         const wasTaskInfluencedByToolbar = overToolbar !== null && overToolbar;
 
         if (
-          duration > HIGH_SEVERITY_FPS_DROP_TIME &&
+          duration > getHighSeverityFpsDropTime() &&
           !taskConsideredDirty &&
           document.visibilityState === 'visible' &&
           !wasTaskInfluencedByToolbar

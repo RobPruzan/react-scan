@@ -31,7 +31,8 @@ interface LockIconRect {
 }
 
 const ANIMATION_CONFIG = {
-  frameInterval: 1000 / 60,
+  getFrameInterval: () =>
+    1000 / ReactScanInternals.options.value.preferredFPS,
   speeds: {
     fast: 0.51,
     slow: 0.1,
@@ -191,7 +192,7 @@ export const ScanOverlay = () => {
     const animationFrame = (timestamp: number) => {
       if (
         timestamp - refLastFrameTime.current <
-        ANIMATION_CONFIG.frameInterval
+        ANIMATION_CONFIG.getFrameInterval()
       ) {
         refRafId.current = requestAnimationFrame(animationFrame);
         return;

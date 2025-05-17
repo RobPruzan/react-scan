@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'preact/hooks';
 import { getFPS } from '~core/instrumentation';
+import { getOptions } from '~core';
 import { cn } from '~web/utils/helpers';
 
 export const FpsMeterInner = ({fps}:{fps: number}) => {
 
 
   const getColor = (fps: number) => {
-    if (fps < 30) return '#EF4444';
-    if (fps < 50) return '#F59E0B';
+    const preferred = getOptions().value.preferredFPS;
+    if (fps < preferred / 2) return '#EF4444';
+    if (fps < (preferred * 5) / 6) return '#F59E0B';
     return 'rgb(214,132,245)';
   };
 
