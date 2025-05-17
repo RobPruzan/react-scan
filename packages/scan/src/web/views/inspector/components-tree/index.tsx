@@ -19,12 +19,14 @@ import {
   getExtendedDisplayName,
   saveLocalStorage,
 } from '~web/utils/helpers';
+import type { Fiber } from 'bippy';
 import { getFiberPath } from '~web/utils/pin';
 import { inspectorUpdateSignal } from '../states';
 import {
   type InspectableElement,
   getCompositeComponentFromElement,
   getInspectableElements,
+  getParentCompositeFiber,
 } from '../utils';
 import {
   type FlattenedNode,
@@ -766,12 +768,10 @@ export const ComponentsTree = () => {
   useEffect(() => {
     let isInitialTreeBuild = true;
     const buildTreeFromElements = (elements: Array<InspectableElement>) => {
-      const nodeMap = new Map<HTMLElement, TreeNode>();
+      const nodeMap = new Map<Fiber, TreeNode>();
       const rootNodes: TreeNode[] = [];
 
       for (const { element, name, fiber } of elements) {
-        if (!element) continue;
-
         let title = name;
         const { name: componentName, wrappers } = getExtendedDisplayName(fiber);
         if (componentName) {
@@ -782,7 +782,7 @@ export const ComponentsTree = () => {
           }
         }
 
-        nodeMap.set(element, {
+        nodeMap.set(fiber, {
           label: componentName || name,
           title,
           children: [],
@@ -791,23 +791,20 @@ export const ComponentsTree = () => {
         });
       }
 
-      for (const { element, depth } of elements) {
-        if (!element) continue;
-        const node = nodeMap.get(element);
+      for (const { fiber } of elements) {
+        const node = nodeMap.get(fiber);
         if (!node) continue;
 
-        if (depth === 0) {
+        const parent = getParentCompositeFiber(fiber)?.[0];
+        if (!parent) {
           rootNodes.push(node);
         } else {
-          let parent = element.parentElement;
-          while (parent) {
-            const parentNode = nodeMap.get(parent);
-            if (parentNode) {
-              parentNode.children = parentNode.children || [];
-              parentNode.children.push(node);
-              break;
-            }
-            parent = parent.parentElement;
+          const parentNode = nodeMap.get(parent);
+          if (parentNode) {
+            parentNode.children = parentNode.children || [];
+            parentNode.children.push(node);
+          } else {
+            rootNodes.push(node);
           }
         }
       }
