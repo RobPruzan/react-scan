@@ -58,7 +58,7 @@ export const getFPS = () => {
   if (!initedFps) {
     initedFps = true;
     updateFPS();
-    fps = 60;
+    fps = ReactScanInternals.options.value.preferredFPS;
   }
 
   return fps;

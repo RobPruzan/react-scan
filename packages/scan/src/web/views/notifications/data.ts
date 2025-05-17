@@ -3,7 +3,10 @@ import { SetStateAction } from 'preact/compat';
 import { Dispatch, useContext } from 'preact/hooks';
 import { hasMemoCache, type Fiber } from 'bippy';
 import { getFiberFromElement } from '../inspector/utils';
-import { HIGH_SEVERITY_FPS_DROP_TIME } from '~core/notifications/event-tracking';
+import {
+  getHighSeverityFpsDropTime,
+  getLowSeverityFpsDropTime,
+} from '~core/notifications/event-tracking';
 
 export type GroupedFiberRender = {
   id: string;
@@ -180,8 +183,8 @@ export const getEventSeverity = (event: NotificationEvent) => {
       return 'high';
     }
     case 'dropped-frames': {
-      if (totalTime < 50) return 'low';
-      if (totalTime < HIGH_SEVERITY_FPS_DROP_TIME) return 'needs-improvement';
+      if (totalTime < getLowSeverityFpsDropTime()) return 'low';
+      if (totalTime < getHighSeverityFpsDropTime()) return 'needs-improvement';
       return 'high';
     }
   }
