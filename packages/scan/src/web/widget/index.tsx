@@ -4,7 +4,7 @@ import { Store } from '~core/index';
 import { cn, saveLocalStorage } from '~web/utils/helpers';
 import { Content } from '~web/views';
 import { ScanOverlay } from '~web/views/inspector/overlay';
-import { LOCALSTORAGE_KEY, MIN_SIZE, SAFE_AREA } from '../constants';
+import { LOCALSTORAGE_KEY, MIN_SIZE, SAFE_AREA, PEEK_SIZE } from '../constants';
 import {
   defaultWidgetConfig,
   signalRefWidget,
@@ -22,6 +22,7 @@ import { ResizeHandle } from './resize-handle';
 export const Widget = () => {
   const refWidget = useRef<HTMLDivElement | null>(null);
   const refShouldOpen = useRef<boolean>(false);
+  const refIsPeeking = useRef<boolean>(false);
 
   const refInitialMinimizedWidth = useRef<number>(0);
   const refInitialMinimizedHeight = useRef<number>(0);
@@ -55,7 +56,21 @@ export const Widget = () => {
       newHeight = refInitialMinimizedHeight.current;
     }
 
-    const newPosition = calculatePosition(corner, newWidth, newHeight);
+    const basePosition = calculatePosition(corner, newWidth, newHeight);
+    const finalPosition = { ...basePosition };
+
+    if (!refShouldOpen.current && refIsPeeking.current) {
+      const isRTL = getComputedStyle(document.body).direction === 'rtl';
+      if (corner.includes('right')) {
+        finalPosition.x = isRTL
+          ? -PEEK_SIZE
+          : window.innerWidth - PEEK_SIZE;
+      } else if (corner.includes('left')) {
+        finalPosition.x = isRTL
+          ? PEEK_SIZE - newWidth
+          : -(newWidth - PEEK_SIZE);
+      }
+    }
 
     const isTooSmall =
       newWidth < MIN_SIZE.width || newHeight < MIN_SIZE.initialHeight;
@@ -80,7 +95,7 @@ export const Widget = () => {
     rafId = requestAnimationFrame(() => {
       containerStyle.width = `${newWidth}px`;
       containerStyle.height = `${newHeight}px`;
-      containerStyle.transform = `translate3d(${newPosition.x}px, ${newPosition.y}px, 0)`;
+      containerStyle.transform = `translate3d(${finalPosition.x}px, ${finalPosition.y}px, 0)`;
       rafId = null;
     });
 
@@ -89,7 +104,7 @@ export const Widget = () => {
       isFullHeight: newHeight >= window.innerHeight - SAFE_AREA * 2,
       width: newWidth,
       height: newHeight,
-      position: newPosition,
+      position: finalPosition,
     };
 
     signalWidget.value = {
@@ -287,6 +302,25 @@ export const Widget = () => {
     }
 
     signalRefWidget.value = refWidget.current;
+    refIsPeeking.current = true;
+    updateWidgetPosition();
+
+    const handlePointerEnter = () => {
+      if (refIsPeeking.current) {
+        refIsPeeking.current = false;
+        updateWidgetPosition();
+      }
+    };
+
+    const handlePointerLeave = () => {
+      if (!refShouldOpen.current) {
+        refIsPeeking.current = true;
+        updateWidgetPosition();
+      }
+    };
+
+    refWidget.current.addEventListener('pointerenter', handlePointerEnter);
+    refWidget.current.addEventListener('pointerleave', handlePointerLeave);
 
     const unsubscribeSignalWidget = signalWidget.subscribe((widget) => {
       if (!refWidget.current) return;
@@ -305,6 +339,7 @@ export const Widget = () => {
     const unsubscribeSignalWidgetViews = signalWidgetViews.subscribe(
       (state) => {
         refShouldOpen.current = state.view !== 'none';
+        refIsPeeking.current = !refShouldOpen.current;
         updateWidgetPosition();
       },
     );
@@ -312,6 +347,9 @@ export const Widget = () => {
     const unsubscribeStoreInspectState = Store.inspectState.subscribe(
       (state) => {
         refShouldOpen.current = state.kind === 'focused';
+        if (refShouldOpen.current) {
+          refIsPeeking.current = false;
+        }
         updateWidgetPosition();
       },
     );
@@ -327,6 +365,10 @@ export const Widget = () => {
       unsubscribeSignalWidgetViews();
       unsubscribeStoreInspectState();
       unsubscribeSignalWidget();
+      if (refWidget.current) {
+        refWidget.current.removeEventListener('pointerenter', handlePointerEnter);
+        refWidget.current.removeEventListener('pointerleave', handlePointerLeave);
+      }
 
       saveLocalStorage(LOCALSTORAGE_KEY, {
         ...defaultWidgetConfig,

@@ -1,4 +1,5 @@
 export const SAFE_AREA = 24;
+export const PEEK_SIZE = 32;
 export const MIN_SIZE = {
   width: 550,
   height: 350,
