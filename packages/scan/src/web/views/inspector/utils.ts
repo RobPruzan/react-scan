@@ -51,6 +51,16 @@ interface ReactRootContainer {
   };
 }
 
+interface ReactContainerRoot {
+  [key: `__reactContainer$${string}`]: {
+    _internalRoot?: {
+      current?: {
+        child: Fiber;
+      };
+    };
+  };
+}
+
 interface ReactInternalProps {
   [key: string]: Fiber;
 }
@@ -74,6 +84,14 @@ export const getFiberFromElement = (element: Element): Fiber | null => {
     const elementWithRoot = element as unknown as ReactRootContainer;
     const rootContainer = elementWithRoot._reactRootContainer;
     return rootContainer?._internalRoot?.current?.child ?? null;
+  }
+
+  for (const key of Object.getOwnPropertyNames(element)) {
+    if (key.startsWith('__reactContainer$')) {
+      const elementWithContainer = element as unknown as ReactContainerRoot;
+      const container = elementWithContainer[key];
+      return container?._internalRoot?.current?.child ?? null;
+    }
   }
 
   for (const key in element) {
