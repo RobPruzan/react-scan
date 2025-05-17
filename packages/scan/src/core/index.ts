@@ -228,6 +228,10 @@ export interface StoreType {
 
 export type OutlineKey = `${string}-${string}`;
 
+export type GetReport = (
+  type?: ComponentType<unknown>,
+) => Record<string, RenderData> | RenderData | null;
+
 export interface Internals {
   instrumentation: ReturnType<typeof createInstrumentation> | null;
   componentAllowList: WeakMap<ComponentType<unknown>, Options> | null;
@@ -238,6 +242,7 @@ export interface Internals {
   onRender: ((fiber: Fiber, renders: Array<Render>) => void) | null;
   Store: StoreType;
   version: string;
+  getReport: GetReport;
 }
 
 export type FunctionalComponentStateChange = {
@@ -325,6 +330,7 @@ export const ReactScanInternals: Internals = {
   activeOutlines: new Map(),
   Store,
   version: packageJson.version,
+  getReport,
 };
 
 if (IS_CLIENT && window.__REACT_SCAN_EXTENSION__) {
@@ -441,17 +447,17 @@ const validateOptions = (options: Partial<Options>): Partial<Options> => {
   return validOptions;
 };
 
-export const getReport = (type?: ComponentType<unknown>) => {
+export function getReport(type?: ComponentType<unknown>) {
   if (type) {
-    for (const reportData of Array.from(Store.legacyReportData.values())) {
+    for (const reportData of Store.reportData.values()) {
       if (reportData.type === type) {
         return reportData;
       }
     }
     return null;
   }
-  return Store.legacyReportData;
-};
+  return Object.fromEntries(Store.reportData);
+}
 
 export const setOptions = (userOptions: Partial<Options>) => {
   const validOptions = validateOptions(userOptions);

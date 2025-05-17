@@ -239,8 +239,8 @@ const init = async () => {
         }
         count = localCount;
       };
-      const reportData = globalHook.ReactScanInternals.Store.reportData;
-      if (!Object.keys(reportData).length) return;
+      const reportData = globalHook.ReactScanInternals.getReport();
+      if (!reportData || !Object.keys(reportData).length) return;
 
       // biome-ignore lint/suspicious/noConsole: Intended debug output
       console.log('REACT_SCAN_REPORT', count);
