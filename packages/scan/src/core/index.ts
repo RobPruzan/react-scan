@@ -546,9 +546,13 @@ export const start = () => {
 
     const options = getOptions();
 
-    initReactScanInstrumentation(() => {
+    if (!ReactScanInternals.instrumentation) {
+      initReactScanInstrumentation(() => {
+        initToolbar(!!options.value.showToolbar);
+      });
+    } else {
       initToolbar(!!options.value.showToolbar);
-    });
+    }
 
     if (!Store.monitor.value && IS_CLIENT) {
       setTimeout(() => {
