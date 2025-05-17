@@ -182,7 +182,7 @@ This often comes down to props that update in reference, like callbacks or objec
 
 React Scan helps you identify these issues by automatically detecting and highlighting renders that cause performance issues. Now, instead of guessing, you can see exactly which components you need to fix.
 
-> Want monitor issues in production? Check out [React Scan Monitoring](https://react-scan.com/monitoring)!
+> Want to monitor issues in production? Check out [React Scan Monitoring](https://react-scan.com/monitoring)!
 
 ### FAQ
 
