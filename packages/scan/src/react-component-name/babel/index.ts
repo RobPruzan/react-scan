@@ -72,6 +72,25 @@ function assignDisplayName(
   }
 }
 
+function assignComponentType(
+  statement: NodePath<t.Statement>,
+  name: string,
+  type: 'client' | 'server',
+): void {
+  statement.insertAfter([
+    t.expressionStatement(
+      t.assignmentExpression(
+        '=',
+        t.memberExpression(
+          t.identifier(name),
+          t.identifier('__reactScanComponentType'),
+        ),
+        t.stringLiteral(type),
+      ),
+    ),
+  ]);
+}
+
 const REACT_CLASS = ['Component', 'PureComponent'];
 
 function isNamespaceExport(
@@ -235,6 +254,13 @@ export const reactScanComponentNamePlugin = (options?: Options): PluginObj => ({
   visitor: {
     Program(path) {
       const assignedNames = getAssignedDisplayNames(path);
+      const isClientComponentFile =
+        path.node.directives?.some(
+          (dir) => dir.value.value === 'use client',
+        ) ?? false;
+      const componentType: 'client' | 'server' = isClientComponentFile
+        ? 'client'
+        : 'server';
       path.traverse({
         ClassDeclaration(path) {
           if (isReactClassComponent(path)) {
@@ -246,6 +272,7 @@ export const reactScanComponentNamePlugin = (options?: Options): PluginObj => ({
               return;
             }
             assignDisplayName(path, name, options?.flags?.noTryCatchDisplayNames);
+            assignComponentType(path, name, componentType);
           }
         },
         FunctionDeclaration(path) {
@@ -269,6 +296,7 @@ export const reactScanComponentNamePlugin = (options?: Options): PluginObj => ({
               return;
             }
             assignDisplayName(path, name, options?.flags?.noTryCatchDisplayNames);
+            assignComponentType(path, name, componentType);
           }
         },
         VariableDeclarator(path) {
@@ -292,6 +320,7 @@ export const reactScanComponentNamePlugin = (options?: Options): PluginObj => ({
                 name,
                 options?.flags?.noTryCatchDisplayNames,
               );
+              assignComponentType(path.parentPath, name, componentType);
             }
           }
         },

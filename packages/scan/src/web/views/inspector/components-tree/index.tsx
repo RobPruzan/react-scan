@@ -101,7 +101,7 @@ interface TreeNodeItemProps {
   searchValue: typeof searchState.value;
 }
 
-const VALID_TYPES = ['memo', 'forwardRef', 'lazy', 'suspense'];
+const VALID_TYPES = ['memo', 'forwardRef', 'lazy', 'suspense', 'client', 'server'];
 
 const parseTypeSearch = (query: string) => {
   const typeMatch = query.match(/\[(.*?)\]/);
@@ -984,7 +984,7 @@ export const ComponentsTree = () => {
 • Regular Expression (e.g., "/^Button/") — Use forward slashes
 
 • Wrapper Type (e.g., "[memo,forwardRef]"):
-   - Available types: memo, forwardRef, lazy, suspense
+   - Available types: memo, forwardRef, lazy, suspense, client, server
    - Matches any part of type name (e.g., "mo" matches "memo")
    - Use commas for multiple types
 
