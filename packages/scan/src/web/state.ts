@@ -96,10 +96,10 @@ export type WidgetStates =
       view: 'inspector';
       // extra params
     }
-  // | {
-  //     view: 'settings';
-  //     // extra params
-  //   }
+  | {
+      view: 'settings';
+      // extra params
+    }
   | {
       view: 'notifications';
       // extra params

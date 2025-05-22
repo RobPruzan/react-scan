@@ -12,13 +12,14 @@ import {
 } from '~core/index';
 import { Icon } from '~web/components/icon';
 import { Toggle } from '~web/components/toggle';
-import { signalWidgetViews } from '~web/state';
+import { signalIsSettingsOpen, signalWidgetViews } from '~web/state';
 import { cn, readLocalStorage, saveLocalStorage } from '~web/utils/helpers';
 import { constant } from '~web/utils/preact/constant';
 import { FPSMeter } from '~web/widget/fps-meter';
 import { getEventSeverity } from '../notifications/data';
 import { Notification } from '../notifications/icons';
 import { useAppNotifications } from '../notifications/notifications';
+import { SettingsPanel } from '../settings';
 
 export const Toolbar = constant(() => {
   const events = useAppNotifications();
@@ -204,6 +205,27 @@ export const Toolbar = constant(() => {
         </button>
       </div>
 
+      <div className="h-full flex items-center justify-center">
+        <button
+          type="button"
+          id="react-scan-settings"
+          title="Settings"
+          onClick={() => {
+            signalIsSettingsOpen.value = !signalIsSettingsOpen.value;
+          }}
+          className="button flex items-center justify-center h-full pl-2.5 pr-2.5"
+        >
+          <Icon
+            name="icon-settings"
+            size={16}
+            className={cn([
+              'text-[#999]',
+              signalIsSettingsOpen.value && 'text-[#8E61E3]',
+            ])}
+          />
+        </button>
+      </div>
+
       <Toggle
         checked={!ReactScanInternals.instrumentation?.isPaused.value}
         onChange={onToggleActive}
@@ -213,6 +235,8 @@ export const Toolbar = constant(() => {
 
       {/* todo add back showFPS*/}
       {ReactScanInternals.options.value.showFPS && <FPSMeter />}
+      
+      <SettingsPanel />
     </div>
   );
 });
