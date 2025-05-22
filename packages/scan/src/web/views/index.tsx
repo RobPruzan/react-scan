@@ -7,6 +7,7 @@ import { Header } from '~web/widget/header';
 import { ViewInspector } from './inspector';
 import { Toolbar } from './toolbar';
 import { NotificationWrapper } from './notifications/notifications';
+import { SettingsView } from './settings';
 
 const isInspecting = computed(
   () => Store.inspectState.value.kind === 'inspecting',
@@ -30,6 +31,9 @@ const isInspectorViewOpen = computed(
 );
 const isNotificationsViewOpen = computed(
   () => signalWidgetViews.value.view === 'notifications',
+);
+const isSettingsViewOpen = computed(
+  () => signalWidgetViews.value.view === 'settings',
 );
 
 export const Content = () => {
@@ -67,6 +71,10 @@ export const Content = () => {
 
           <ContentView isOpen={isNotificationsViewOpen}>
             <NotificationWrapper />
+          </ContentView>
+
+          <ContentView isOpen={isSettingsViewOpen}>
+            <SettingsView />
           </ContentView>
         </div>
       </div>

@@ -1,13 +1,13 @@
 import { render, fireEvent } from '@testing-library/preact';
 import { ReactScanInternals, setOptions } from '~core/index';
-import { signalIsSettingsOpen } from '~web/state';
-import { SettingsPanel } from '../index';
+import { signalWidgetViews } from '~web/state';
+import { SettingsView } from '../index';
 
 jest.mock('~core/index', () => ({
   ReactScanInternals: {
     options: {
       value: {
-        animationSpeed: 1,
+        animationSpeed: 'fast',
         trackUnnecessaryRenders: true,
         log: false,
         showFPS: true,
@@ -19,14 +19,16 @@ jest.mock('~core/index', () => ({
 }));
 
 jest.mock('~web/state', () => ({
-  signalIsSettingsOpen: {
-    value: true,
+  signalWidgetViews: {
+    value: {
+      view: 'settings',
+    },
   },
 }));
 
-describe('SettingsPanel', () => {
-  it('renders settings panel with correct options', () => {
-    const { getByText, getByTitle } = render(<SettingsPanel />);
+describe('SettingsView', () => {
+  it('renders settings view with correct options', () => {
+    const { getByText } = render(<SettingsView />);
     
     expect(getByText('Settings')).toBeInTheDocument();
     expect(getByText('Animation Speed')).toBeInTheDocument();
@@ -37,7 +39,7 @@ describe('SettingsPanel', () => {
   });
 
   it('calls setOptions when a toggle is clicked', () => {
-    const { getByLabelText } = render(<SettingsPanel />);
+    const { getByLabelText } = render(<SettingsView />);
     
     fireEvent.click(getByLabelText('Track Unnecessary Renders'));
     
@@ -46,11 +48,11 @@ describe('SettingsPanel', () => {
     }));
   });
 
-  it('closes panel when close button is clicked', () => {
-    const { getByTitle } = render(<SettingsPanel />);
+  it('closes view when close button is clicked', () => {
+    const { getByTitle } = render(<SettingsView />);
     
     fireEvent.click(getByTitle('Close'));
     
-    expect(signalIsSettingsOpen.value).toBe(false);
+    expect(signalWidgetViews.value).toEqual({ view: 'none' });
   });
 });
