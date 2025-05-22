@@ -1,11 +1,11 @@
 import { forwardRef } from 'preact/compat';
-import { useEffect, useState } from 'preact/hooks';
-import { ReactScanInternals, setOptions } from '~core/index';
+import { useCallback, useEffect, useState } from 'preact/hooks';
+import { ReactScanInternals, setOptions, type LocalStorageOptions } from '~core/index';
 import { Icon } from '~web/components/icon';
 import { Slider } from '~web/components/slider';
 import { Toggle } from '~web/components/toggle';
 import { signalWidgetViews } from '~web/state';
-import { cn } from '~web/utils/helpers';
+import { cn, readLocalStorage, saveLocalStorage } from '~web/utils/helpers';
 
 const animationSpeedLabels = {
   0: 'Off',
@@ -33,6 +33,7 @@ export const SettingsView = forwardRef<HTMLDivElement>((_, ref) => {
     log: ReactScanInternals.options.value.log || false,
     showFPS: ReactScanInternals.options.value.showFPS || false,
     showNotificationCount: ReactScanInternals.options.value.showNotificationCount || false,
+    outlineRerenders: ReactScanInternals.instrumentation ? !ReactScanInternals.instrumentation.isPaused.value : true,
   });
 
   useEffect(() => {
@@ -42,8 +43,9 @@ export const SettingsView = forwardRef<HTMLDivElement>((_, ref) => {
       log: ReactScanInternals.options.value.log || false,
       showFPS: ReactScanInternals.options.value.showFPS || false,
       showNotificationCount: ReactScanInternals.options.value.showNotificationCount || false,
+      outlineRerenders: ReactScanInternals.instrumentation ? !ReactScanInternals.instrumentation.isPaused.value : true,
     });
-  }, [ReactScanInternals.options.value]);
+  }, [ReactScanInternals.options.value, ReactScanInternals.instrumentation?.isPaused.value]);
 
   const handleToggleChange = (option: string) => (e: Event) => {
     const target = e.target as HTMLInputElement;
@@ -58,6 +60,31 @@ export const SettingsView = forwardRef<HTMLDivElement>((_, ref) => {
       [option]: target.checked,
     });
   };
+
+  const handleOutlineRerendersToggle = useCallback((e: Event) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!ReactScanInternals.instrumentation) {
+      return;
+    }
+    
+    const target = e.target as HTMLInputElement;
+    const isPaused = !target.checked;
+    ReactScanInternals.instrumentation.isPaused.value = isPaused;
+    
+    const existingLocalStorageOptions =
+      readLocalStorage<LocalStorageOptions>('react-scan-options');
+    saveLocalStorage('react-scan-options', {
+      ...existingLocalStorageOptions,
+      enabled: !isPaused,
+    });
+    
+    setLocalOptions({
+      ...options,
+      outlineRerenders: !isPaused,
+    });
+  }, [options]);
 
   const handleAnimationSpeedChange = (e: Event) => {
     const target = e.target as HTMLInputElement;
@@ -91,6 +118,18 @@ export const SettingsView = forwardRef<HTMLDivElement>((_, ref) => {
       
       <div className="flex-1 p-4 overflow-y-auto">
         <div className="space-y-6">
+          <div className="space-y-4">
+            <h4 className="text-xs text-gray-400 uppercase font-medium">General</h4>
+            
+            <div className="flex items-center justify-between">
+              <label className="text-xs text-gray-400">Outline Re-renders</label>
+              <Toggle
+                checked={options.outlineRerenders}
+                onChange={handleOutlineRerendersToggle}
+              />
+            </div>
+          </div>
+          
           <div className="space-y-4">
             <h4 className="text-xs text-gray-400 uppercase font-medium">Performance</h4>
             

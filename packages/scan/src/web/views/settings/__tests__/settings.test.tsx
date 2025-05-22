@@ -14,8 +14,15 @@ jest.mock('~core/index', () => ({
         showNotificationCount: false,
       },
     },
+    instrumentation: {
+      isPaused: {
+        value: false,
+      },
+    },
   },
   setOptions: jest.fn(),
+  readLocalStorage: jest.fn(),
+  saveLocalStorage: jest.fn(),
 }));
 
 jest.mock('~web/state', () => ({
@@ -26,11 +33,18 @@ jest.mock('~web/state', () => ({
   },
 }));
 
+jest.mock('~web/utils/helpers', () => ({
+  cn: jest.fn((classes) => classes.filter(Boolean).join(' ')),
+  readLocalStorage: jest.fn(),
+  saveLocalStorage: jest.fn(),
+}));
+
 describe('SettingsView', () => {
   it('renders settings view with correct options', () => {
     const { getByText } = render(<SettingsView />);
     
     expect(getByText('Settings')).toBeInTheDocument();
+    expect(getByText('Outline Re-renders')).toBeInTheDocument();
     expect(getByText('Animation Speed')).toBeInTheDocument();
     expect(getByText('Track Unnecessary Renders')).toBeInTheDocument();
     expect(getByText('Show Logs')).toBeInTheDocument();
@@ -46,6 +60,14 @@ describe('SettingsView', () => {
     expect(setOptions).toHaveBeenCalledWith(expect.objectContaining({
       trackUnnecessaryRenders: false,
     }));
+  });
+
+  it('toggles outline re-renders when clicked', () => {
+    const { getByLabelText } = render(<SettingsView />);
+    
+    fireEvent.click(getByLabelText('Outline Re-renders'));
+    
+    expect(ReactScanInternals.instrumentation.isPaused.value).toBe(true);
   });
 
   it('closes view when close button is clicked', () => {
